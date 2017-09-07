@@ -1,2 +1,7 @@
-# AISL_Chapter_Exercises
-Springer Text, An Introduction to Statistical Learning with Applications in R applied exercise solutions
+# An Introduction to Statistical Learning with Applications in R Chapter Exercises
+
+Solutions to applied exercises for each chapter
+
+## Technologies Used:
+**Languages**:
+R

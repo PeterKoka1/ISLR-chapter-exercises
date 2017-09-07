@@ -1,13 +1,13 @@
 ###: COLLEGE DATASET
 
-df = read.csv('College.csv')
+df <- read.csv('College.csv')
 fix(df)
 ###: creating an index-like label for each university so we don't treat as data
-rownames(df)=df[,1]
+rownames(df) <- df[,1]
 ###: deleting the university titles
-df=df[,-1]
+df <- df[,-1]
 
-A=df[,1:10]
+A <- df[,1:10]
 pairs(A)
 plot(df$Outstate,df$Private)
 
@@ -15,25 +15,23 @@ plot(df$Outstate,df$Private)
 ###: or not the proportion of students coming from the top 10% of their highschool classes
 ###: exceeds 50%.
 
-Elite=rep("No",nrow(df)) # rep is for 'replicate' and will just print out "No" len(df) times
+Elite <- rep("No",nrow(df)) # rep is for 'replicate' and will just print out "No" len(df) times
 Elite[df$Top10perc>50]="Yes"
-Elite=as.factor(Elite) # creating as qualitative variables
+Elite <- as.factor(Elite) # creating as qualitative variables
 df = data.frame(df,Elite) # appending Elite to our df
 
 ###: deleting extra irrelevant columns
 drops <- c(df$var21,df$var22,df$var23)
-df = df[, !(names(df) %in% drops)]
+df <- df[, !(names(df) %in% drops)]
 fix(df)
-
 
 ###: AUTO DATASET
 
-
-df2<-read.csv('Auto.csv',header=TRUE,na.strings="?")
+df2 <- read.csv('Auto.csv',header=TRUE,na.strings="?")
 df2 <- na.omit(df2)
 
 ###: finding quantitative predictors, and qualitative predictors
-str(df2) # only name is qualitative
+str(df2) # only 'name' is qualitative
 
 ###: range of quantitative predictors
 quant_var_df2 <- (df2[, !(names(df2)=='name')])
@@ -75,12 +73,10 @@ cor(df2$horsepower, df2$acceleration)
 plot(df2$year,df2$mpg)
 # the later the years, the better MPG we tend to have
 
-
 ###: BOSTON DATASET
 
 library(MASS)
 ?Boston
-fix(Boston)
 Boston$chas <- as.factor(Boston$chas)
 ###: number of rows and cols
 nrow(Boston) # 506
@@ -89,7 +85,7 @@ ncol(Boston) # 14
 pairs(Boston)
 
 par(mfrow = c(2,2))
-plot(Boston$black, Boston$crim, main = 'Black Population vs. Crime Rate')
+plot(Boston$lstat, Boston$crim, main = 'Lower Status of Pop. vs. Crime Rate')
 plot(Boston$dis,Boston$crim, main = 'Distance to Employment Centres vs. Crime Rate')
 plot(Boston$tax,Boston$crim, main = 'Property Tax Rate vs. Crime Rate')
 plot(Boston$nox,Boston$crim, main = 'Nitrogen Oxide Concentration vs. Crime Rate')
@@ -106,11 +102,10 @@ print(ratio_crimes)
 # OR
 ratio_crimes2 = nrow(Boston[Boston$crim > 20,])
 print(ratio_crimes)
-###: less than 0.002% of subburbs have
+###: less than 0.002% of subburbs have per capita crime rate > 20
 
 ###: How many suburbs average more than 7 rooms per dwelling?
 seven_rooms = nrow(Boston[Boston$crim > 7,])
 # 85 suburbs
 eight_rooms = nrow(Boston[Boston$crim > 8,])
 # 76 suburbsws
-

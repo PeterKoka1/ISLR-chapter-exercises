@@ -1,4 +1,3 @@
-###: Auto dataset
 library(ISLR)
 data("Auto")
 lm.fit <- lm(formula = mpg ~ horsepower, data=Auto)
@@ -26,8 +25,6 @@ plot(lm.fit)
 
 ###: Residuals vs. fitted -> indicates trend in residuals (i.e. non-linearity in model)
 ###: Residuals vs. leverage -> indicates some high leverage points 
-
-###: scatterplot matrix with all points
 
 pairs(Auto)
 cor(Auto[,-9])

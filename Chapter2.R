@@ -1,3 +1,7 @@
+###############
+## CHAPTER 2 ##
+###############
+
 ###: COLLEGE DATASET
 
 df <- read.csv('College.csv')

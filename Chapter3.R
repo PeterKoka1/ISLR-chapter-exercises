@@ -1,8 +1,3 @@
-################
-## CHAPTER 3 ###
-################
-
-###: Auto dataset
 library(ISLR)
 data("Auto")
 lm.fit <- lm(formula = mpg ~ horsepower, data=Auto)

@@ -1,7 +1,3 @@
-################
-## CHAPTER 4 ###
-################
-
 library(ISLR)
 summary(Weekly)
 attach(Weekly)

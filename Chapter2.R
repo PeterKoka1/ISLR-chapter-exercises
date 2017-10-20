@@ -1,9 +1,3 @@
-###############
-## CHAPTER 2 ##
-###############
-
-###: COLLEGE DATASET
-
 df <- read.csv('College.csv')
 fix(df)
 ###: creating an index-like label for each university so we don't treat as data

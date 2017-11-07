@@ -37,6 +37,25 @@ preds <- predict(fit, newdata = list(age = age.grid), se = TRUE)
 se.bands <- cbind(preds$fit + 2*preds$se.fit, preds$fit - 2*preds$se.fit)
 lines(age.grid, preds$fit, lwd = 2, col = "blue")
 matlines(age.grid, se.bands, lwd = 1, col = "blue", lty = 3)
-ar + s(age, df=5) + education, family = "binomial",
-                data = Wage, subset = (education != "1. < HS Grad"))
-plot(gam.lr.s, se=TRUE, col = "green")
+
+set.seed(1)
+cut.cv.error <- rep(NA, 10)
+for (i in 2:length(cut.cv.error)) {
+  Wage$age.cut <- cut(Wage$age, i)
+  fit <- glm(wage ~ age.cut, data = Wage)
+  cut.cv.error[i] <- cv.glm(Wage, fit, K = 10)$delta[1]
+}
+xrange <- seq(from = 2, to = 10)
+testMSE <- cut.cv.error[!(is.na(cut.cv.error))]
+plot(xrange, testMSE, xlab = "Number of Cuts", ylab = "Test MSE", type = "l")
+which.min(cut.cv.error)
+points(8, cut.cv.error[8], col = "red", pch = 20, cex = 2)
+title("Step Function - Number of Cuts 10-Fold CV")
+
+plot(wage ~ age, data = Wage, col = "gray")
+age.lims <- range(age)
+age.grid <- seq(from = age.lims[1], to = age.lims[2])
+fit <- glm(wage ~ cut(age, 8), data = Wage)
+preds <- predict(fit, newdata = list(age = age.grid))
+lines(age.grid, preds, col = "red", lwd = 2)
+title("Step Function with Cutpoints = C = 8")

@@ -1,8 +1,8 @@
 library(ISLR)
 attach(Wage)
 library(boot)
-set.seed(123)
 
+set.seed(123)
 val.errors <- rep(NA, 15)
 for (i in 1:15) {
   fit.i <- glm(wage ~ poly(age, i), data = Wage)
@@ -29,14 +29,16 @@ anova(fit.1, fit.2, fit.3, fit.4, fit.5, fit.6, fit.7)
 # deg 4 has 0.05 significance, higher order polynomials don't offer much
 # may even make sense to use cubic instead (p-value of 0.0017)
 
-title("Wage vs. Age Cubic Polynomial Regression")
+par(mfrow = c(1,1))
+fit <- lm(wage ~ poly(age, 3), data = Wage)
 plot(wage ~ age, data = Wage, col = "gray")
+title("Wage vs. Age Cubic Polynomial Regression")
 agelims <- range(age)
 age.grid <- seq(from = agelims[1], to = agelims[2])
 preds <- predict(fit, newdata = list(age = age.grid), se = TRUE)
 se.bands <- cbind(preds$fit + 2*preds$se.fit, preds$fit - 2*preds$se.fit)
-lines(age.grid, preds$fit, lwd = 2, col = "blue")
-matlines(age.grid, se.bands, lwd = 1, col = "blue", lty = 3)
+lines(age.grid, preds$fit, lwd = 4, col = "blue")
+matlines(age.grid, se.bands, lwd = 2, col = "blue", lty = 3)
 
 set.seed(1)
 cut.cv.error <- rep(NA, 10)
@@ -130,3 +132,126 @@ par(mfrow=c(1,1))
 plot(nox ~ dis, data = Boston, col = "darkgray", 
      main = "Distance vs. Nitrogen Oxides Concentration")
 lines(dis.grid, preds, col = "red", lwd = 3)
+
+SSE <- rep(NA, 10)
+par(mfrow=c(2,5))
+for (i in 1:length(errors)) {
+  fit <- lm(nox ~ poly(dis, i), data = Boston)
+  SSEi <- sum(fit$residuals^2)
+  SSE[i] <- SSEi
+  
+  plot(nox ~ dis, data = Boston, col = "darkgray", 
+       pch = 20)
+  title(sprintf("Polynomial Fit With Degree %d", i), pch = 0.5)
+  preds <- predict(fit, newdata = list(dis = dis.grid), se = TRUE)
+  lines(dis.grid, preds$fit, lwd = 3, col = "red")
+  se.bands <- cbind(preds$fit + 2*preds$se.fit, preds$fit - 2*preds$se.fit)
+  matlines(dis.grid, se.bands, lwd = 2, col = "red", lty = 2)
+}
+par(mfrow=c(1,1))
+plot(1:length(SSE), SSE, type = "l", 
+     xlab = "Number of Degrees", ylab = "Sum of Squared Errors")
+title("Polynomial Fits with Various Degrees on Distance vs. Nitrogen Oxide Concentration",
+      pch = 0.2)
+which.min(SSE)
+points(10, SSE[10], col = "red", pch = 20, cex = 2)
+# obviously, as we get more flexible, train SSE decreases monotonically
+
+
+k.fold.iters <- function() {
+
+  iter.errors <- rep(NA, 50)
+  ret.val.errors <- rep(0, 10)
+  for (i in 1:length(iter.errors)) {
+    set.seed(i)
+    val.errors <- rep(NA, 10)
+    for (j in 1:length(val.errors)) {
+      fit <- glm(nox ~ poly(dis, j), data = Boston)
+      cv.error <- cv.glm(data = Boston, fit, K=10)$delta[1]
+      val.errors[j] = cv.error
+      ret.val.errors[j] = ret.val.errors[j] + cv.error
+    }
+    min <- which.min(val.errors)
+    iter.errors[i] = min
+  }
+  
+  print(sd(iter.errors))
+  
+  ret.val.errors = ret.val.errors / length(iter.errors)
+  return(c(mean(iter.errors), ret.val.errors))
+}
+
+mean.k.fold <- k.fold.iters()
+
+cross.validation <- function() {
+
+  k.fold.reps <- k.fold.iters()
+  
+  min <- trunc(k.fold.reps[1])
+  val.errors <- k.fold.reps[2:length(mean.k.fold)]
+  dis.range <- range(dis)
+  if (dis.range[2] > 50) {
+    grid.dis <- seq(from = dis.range[1], to = dis.range[2])
+  } else {
+    grid.dis <- seq(from = dis.range[1], to = dis.range[2], by = 0.5)
+  }
+  fit <- lm(nox ~ poly(dis, min), data = Boston)
+  preds <- predict(fit, newdata = list(dis = grid.dis), se = TRUE)
+  
+  par(mfrow=c(1,2))
+  plot(1:length(val.errors), val.errors, type = "l",
+       xlab = "Test MSE", ylab = "Number of Degrees")
+  title(sprintf("10-Fold Cross-Validation with d = 1-%d",range(val.errors)[2]))
+  points(min, val.errors[min], col = "navyblue", pch = 20, cex = 2)
+  
+  plot(nox ~ dis, data = Boston, col = "gray48", pch = 1, 
+       xlab = "Distance", ylab = "Nitrogen Oxide Concentration")
+  title(sprintf("Cross-Validated %d-Degree Polynomial Regression", min))
+  lines(grid.dis, preds$fit, col = "navyblue", lwd = 3)
+  se.bands <- cbind(preds$fit + 2*preds$se.fit, preds$fit - 2*preds$se.fit)
+  matlines(grid.dis, se.bands, col = "skyblue1", lty = 2, lwd = 2)
+  labels <- c("Linear Regression", "Squared Regression", 
+              "Cubic Regression", "Quadratic Regression")
+  for (i in 5:length(val.errors)) {
+    ith.deg <- sprintf("%dth Degree Regression", i)
+    label.i <- cbind(labels, ith.deg)
+    labels <- label.i
+  }
+  plot.labels <- labels[1:length(val.errors)]
+  reg.type.plot <- ""
+  for (i in 1:length(val.errors)) {
+    if ( i == min ) {
+      reg.type.plot <- plot.labels[i]
+    }
+  }
+  legend("topright", legend=c(reg.type.plot, "95% Confidence Interval"),
+         col=c("navyblue","skyblue"), lty=c(1,2), lwd=c(3,2), seg.len = 2, cex=0.8)
+}
+
+cross.validation()
+
+fit <- lm(nox ~ bs(dis, degree = 4), data = Boston)
+summary(fit)
+pred <- predict(fit, newdata = list(dis = grid.dis))
+par(mfrow=c(1,1))
+plot(nox ~ dis, data = Boston, col = "darkgray", pch = 20)
+lines(grid.dis, pred, col = "navyblue", lwd = 3)
+
+val.errors <- rep(NA, 12)
+for (i in 1:length(val.errors)) {
+  fit <- lm(nox ~ bs(dis, df = i+3), data = Boston)
+  val.errors[i] = sum(fit$residuals^2)
+}
+plot(1:length(val.errors), val.errors, type = "l")
+points(which.min(val.errors), val.errors[which.min(val.errors)], 
+       col = "red", pch = 20, cex = 2)
+
+val.errors <- rep(NA, 12)
+for (i in 1:length(val.errors)) {
+  fit <- glm(nox ~ bs(dis, df = i+3), data = Boston)
+  cv.error <- cv.glm(data = Boston, fit, K=10)$delta[1]
+  val.errors[i] = cv.error
+}
+plot(1:length(val.errors), val.errors, type = "l")
+min <- which.min(val.errors)
+points(min, val.errors[min], col = "red", pch = 20, cex = 2) # 5 degrees of freedom

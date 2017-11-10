@@ -201,7 +201,7 @@ cross.validation <- function() {
   par(mfrow=c(1,2))
   plot(1:length(val.errors), val.errors, type = "l",
        xlab = "Test MSE", ylab = "Number of Degrees")
-  title(sprintf("10-Fold Cross-Validation with d = 1-%d",range(val.errors)[2]))
+  title(sprintf("10-Fold Cross-Validation with d = 1-%d",length(val.errors)))
   points(min, val.errors[min], col = "navyblue", pch = 20, cex = 2)
   
   plot(nox ~ dis, data = Boston, col = "gray48", pch = 1, 

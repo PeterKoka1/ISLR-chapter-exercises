@@ -1,8 +1,8 @@
 library(ISLR)
 attach(Wage)
 library(boot)
-
 set.seed(123)
+
 val.errors <- rep(NA, 15)
 for (i in 1:15) {
   fit.i <- glm(wage ~ poly(age, i), data = Wage)
@@ -201,7 +201,7 @@ cross.validation <- function() {
   par(mfrow=c(1,2))
   plot(1:length(val.errors), val.errors, type = "l",
        xlab = "Test MSE", ylab = "Number of Degrees")
-  title(sprintf("10-Fold Cross-Validation with d = 1-%d",length(val.errors)))
+  title(sprintf("10-Fold Cross-Validation with d = 1-%d",range(val.errors)[2]))
   points(min, val.errors[min], col = "navyblue", pch = 20, cex = 2)
   
   plot(nox ~ dis, data = Boston, col = "gray48", pch = 1, 
@@ -255,3 +255,30 @@ for (i in 1:length(val.errors)) {
 plot(1:length(val.errors), val.errors, type = "l")
 min <- which.min(val.errors)
 points(min, val.errors[min], col = "red", pch = 20, cex = 2) # 5 degrees of freedom
+
+library(leaps)
+set.seed(123)
+attach(College)
+train <- sample(1:dim(College)[1], dim(College)[1] / 2)
+test <- !(train)
+length(names(College))
+reg.fwd <- regsubsets(Outstate ~., data = College[train, ], nvmax = 
+                        length(names(College)) - 1,
+                      method = "forward")
+regfit.sum <- summary(reg.fwd)
+par(mfrow=c(1,3))
+plot(regfit.sum$adjr2, xlab = "Number of Variables", ylab = "Adjusted R Squared",
+     type = "l")
+abline(h = adr2.max - sd(regfit.sum$adjr2), lty = 2, col = "red")
+points(adjr2.max, regfit.sum$adjr2[adjr2.max], col = "red", pch = 20, cex = 1.5)
+plot(regfit.sum$bic, xlab = "Number of Variables", ylab = "BIC", type = "l")
+bic.min <- which.min(regfit.sum$bic)
+points(bic.min, regfit.sum$bic[bic.min], col = "red", pch = 20, cex = 1.5)
+plot(regfit.sum$cp, xlab = "Number of Variables", ylab = "Cp", type = "l")
+cp.min <- which.min(regfit.sum$cp)
+points(cp.min, regfit.sum$cp[cp.min], col = "red", pch = 20, cex = 1.5)
+mins <- c(adjr2.max, bic.min, cp.min)
+
+reg.fwd <- regsubsets(Outstate ~., data = College, nvmax = length(names(College)) - 1,
+                      method = "forward")
+co <- coef(reg.fwd, id = 11)

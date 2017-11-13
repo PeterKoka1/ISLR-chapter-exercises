@@ -158,16 +158,17 @@ points(10, SSE[10], col = "red", pch = 20, cex = 2)
 # obviously, as we get more flexible, train SSE decreases monotonically
 
 
-k.fold.iters <- function() {
-
+k.fold.iters <- function(Data) {
+  
+  attach(Data)
   iter.errors <- rep(NA, 50)
   ret.val.errors <- rep(0, 10)
   for (i in 1:length(iter.errors)) {
     set.seed(i)
     val.errors <- rep(NA, 10)
     for (j in 1:length(val.errors)) {
-      fit <- glm(nox ~ poly(dis, j), data = Boston)
-      cv.error <- cv.glm(data = Boston, fit, K=10)$delta[1]
+      fit <- glm(nox ~ poly(dis, j), data = Data)
+      cv.error <- cv.glm(data = Data, fit, K=10)$delta[1]
       val.errors[j] = cv.error
       ret.val.errors[j] = ret.val.errors[j] + cv.error
     }
@@ -181,30 +182,29 @@ k.fold.iters <- function() {
   return(c(mean(iter.errors), ret.val.errors))
 }
 
-mean.k.fold <- k.fold.iters()
-
-cross.validation <- function() {
-
-  k.fold.reps <- k.fold.iters()
+cross.validation <- function(Data) {
+  
+  attach(Data)
+  k.fold.reps <- k.fold.iters(Data)
   
   min <- trunc(k.fold.reps[1])
-  val.errors <- k.fold.reps[2:length(mean.k.fold)]
+  val.errors <- k.fold.reps[2:length(k.fold.reps)]
   dis.range <- range(dis)
   if (dis.range[2] > 50) {
     grid.dis <- seq(from = dis.range[1], to = dis.range[2])
   } else {
     grid.dis <- seq(from = dis.range[1], to = dis.range[2], by = 0.5)
   }
-  fit <- lm(nox ~ poly(dis, min), data = Boston)
+  fit <- lm(nox ~ poly(dis, min), data = Data)
   preds <- predict(fit, newdata = list(dis = grid.dis), se = TRUE)
   
   par(mfrow=c(1,2))
   plot(1:length(val.errors), val.errors, type = "l",
        xlab = "Test MSE", ylab = "Number of Degrees")
-  title(sprintf("10-Fold Cross-Validation with d = 1-%d",range(val.errors)[2]))
+  title(sprintf("10-Fold Cross-Validation with d = 1-%d",length(val.errors)))
   points(min, val.errors[min], col = "navyblue", pch = 20, cex = 2)
   
-  plot(nox ~ dis, data = Boston, col = "gray48", pch = 1, 
+  plot(nox ~ dis, data = Data, col = "gray48", pch = 1, 
        xlab = "Distance", ylab = "Nitrogen Oxide Concentration")
   title(sprintf("Cross-Validated %d-Degree Polynomial Regression", min))
   lines(grid.dis, preds$fit, col = "navyblue", lwd = 3)
@@ -224,11 +224,11 @@ cross.validation <- function() {
       reg.type.plot <- plot.labels[i]
     }
   }
-  legend("topright", legend=c(reg.type.plot, "95% Confidence Interval"),
+  legend("topright", legend=c(reg.type.plot, "95% Conf Int (2SE)"),
          col=c("navyblue","skyblue"), lty=c(1,2), lwd=c(3,2), seg.len = 2, cex=0.8)
 }
 
-cross.validation()
+cross.validation(Boston)
 
 fit <- lm(nox ~ bs(dis, degree = 4), data = Boston)
 summary(fit)

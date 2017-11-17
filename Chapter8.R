@@ -6,22 +6,15 @@ train <- sample(1:nrow(Boston), nrow(Boston)/2)
 B.train <- Boston[train, ]
 B.test <- Boston[-train, ]
 
-trunc(sqrt(ncol(Boston)) - 1)
-trunc(ncol(Boston) - 1) / 2
-trunc(ncol(Boston)) - 1
-m.tree.vals <- c(sqrt(ncol(Boston)),
-                 ncol(Boston) - 1,
-                 ncol(Boston) / 2)
+m.tree.vals <- c(sqrt(ncol(Boston)), ncol(Boston) - 1, ncol(Boston) / 2)
 n.tree.vals <- c(300, 400, 500)
 colors <- c("blue","red","green")
 par(mfrow=c(1,3))
 for (i in 1:3) {
   n.tree <- n.tree.vals[i]
-  rforest <- randomForest(medv ~., data = Boston, subset = train,
-                          mtry = m.tree.vals[1], ntree = n.tree)
+  rforest <- randomForest(medv ~., data = Boston, subset = train, mtry = m.tree.vals[1], ntree = n.tree)
   mse.rf <- rforest$mse
-  plot(1:n.tree, mse.rf, col = colors[1], type = "l",
-       xlab = sprintf("Size %d forest", n.tree), ylab = "Test MSE",
+  plot(1:n.tree, mse.rf, col = colors[1], type = "l", xlab = sprintf("Size %d forest", n.tree), ylab = "Test MSE",
        ylim = c(10,35))
   rforest2 <- randomForest(medv ~., data = Boston, subset = train,
                            mtry = m.tree.vals[2], ntree = n.tree)
@@ -33,8 +26,8 @@ for (i in 1:3) {
         xlab = sprintf("Size %d forest", n.tree), ylab = "Test MSE")
   lines(1:n.tree, mse.rf3, col = colors[3], type = "l",
         xlab = sprintf("Size %d forest", n.tree), ylab = "Test MSE")
-  legend("topright", legend=c("m = sqrt(p)", "m = p-1", "m = p/2"),
-         col=c("blue","red","green"), lty=c(1,1,1), lwd=c(3,2), seg.len = 2, cex=0.8)
+  legend("topright", legend=c("m = sqrt(p)", "m = p-1", "m = p/2"), col=c("blue","red","green"), 
+         lty=c(1,1,1), lwd=c(3,2), seg.len = 2, cex=0.8)
 }
 
 library(ISLR)
